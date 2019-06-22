@@ -54,7 +54,13 @@ public:
 	void each_collision(Collider collider, OnCollisionFunc func)noexcept;
 
 	template<class Pred>
-	void remove_if(Pred pred);
+	void remove_if(Pred pred)noexcept;
+
+	template<class Pred>
+	void remove_first_if(Pred pred)noexcept;
+
+	void remove(const T& v)noexcept;
+	void remove_first(const T& v)noexcept;
 
 	void reserve(size_t size)noexcept { m_Nodes.reserve(size); }
 	void clear()noexcept { m_Nodes.clear(); }
@@ -201,11 +207,49 @@ void QuadTree<T>::each_collision(Collider collider, OnCollisionFunc func)noexcep
 }
 
 template<class T> template<class Pred>
-void QuadTree<T>::remove_if(Pred pred)
+void QuadTree<T>::remove_if(Pred pred)noexcept
 {
 	for (auto& node : m_Nodes)
 	{
 		node.objects.erase(std::remove_if(node.objects.begin(), node.objects.end(), pred), node.objects.end());
+	}
+}
+
+template<class T> template<class Pred>
+void QuadTree<T>::remove_first_if(Pred pred)noexcept
+{
+	for (auto& node : m_Nodes)
+	{
+		auto itr = std::find_if(node.objects.begin(), node.objects.end(), pred);
+		if (itr != node.objects.end())
+		{
+			node.objects.erase(itr);
+			break;
+		}
+	}
+}
+
+template<class T> 
+void QuadTree<T>::remove(const T& obj)noexcept
+{
+	for (auto& node : m_Nodes)
+	{
+		node.objects.erase(std::remove_if(node.objects.begin(), node.objects.end(), 
+			[&obj](const auto& entry) { return entry.obj == obj; }), node.objects.end());
+	}
+}
+
+template<class T>
+void QuadTree<T>::remove_first(const T& obj)noexcept
+{
+	for (auto& node : m_Nodes)
+	{
+		auto itr = std::find_if(node.objects.begin(), node.objects.end(), [&obj](const auto& entry) { return entry.obj == obj; });
+		if (itr != node.objects.end())
+		{
+			node.objects.erase(itr);
+			break;
+		}
 	}
 }
 
