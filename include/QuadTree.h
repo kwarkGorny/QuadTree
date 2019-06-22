@@ -42,7 +42,7 @@ class QuadTree
 {
 public:
 	void initialize(int maxLevel, size_t maxObjects, Rect bound)noexcept;
-	void add(Rect bound, T&& obj)noexcept;
+	void insert(Rect bound, T&& obj)noexcept;
 
 	template<class PairCollisionPred, class PairCollisionFunc>
 	void each_collision_if(PairCollisionPred isColliding, PairCollisionFunc onCollision)noexcept;
@@ -86,7 +86,7 @@ void QuadTree<T>::initialize(int maxLevel, size_t maxObjects, Rect bound)noexcep
 }
 
 template<class T>
-void QuadTree<T>::add(Rect bound, T&& obj)noexcept
+void QuadTree<T>::insert(Rect bound, T&& obj)noexcept
 {
 	if (m_Nodes.size() == 0 ||
 		!m_Nodes[0].bound.intersects(bound))
