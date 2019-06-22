@@ -59,8 +59,11 @@ public:
 	template<class Pred>
 	void erase_first_if(Pred pred)noexcept;
 
-	void erase(const T& v)noexcept;
-	void erase_first(const T& v)noexcept;
+	template <class Value>
+	void erase(const Value& v)noexcept;
+
+	template <class Value>
+	void erase_first(const Value& v)noexcept;
 
 	void reserve(size_t size)noexcept { m_Nodes.reserve(size); }
 	void clear()noexcept { m_Nodes.clear(); }
@@ -207,7 +210,7 @@ void QuadTree<T>::each_collision(Collider collider, OnCollisionFunc func)noexcep
 }
 
 template<class T> template<class Pred>
-void QuadTree<T>::remove_if(Pred pred)noexcept
+void QuadTree<T>::erase_if(Pred pred)noexcept
 {
 	for (auto& node : m_Nodes)
 	{
@@ -216,7 +219,7 @@ void QuadTree<T>::remove_if(Pred pred)noexcept
 }
 
 template<class T> template<class Pred>
-void QuadTree<T>::remove_first_if(Pred pred)noexcept
+void QuadTree<T>::erase_first_if(Pred pred)noexcept
 {
 	for (auto& node : m_Nodes)
 	{
@@ -229,8 +232,8 @@ void QuadTree<T>::remove_first_if(Pred pred)noexcept
 	}
 }
 
-template<class T> 
-void QuadTree<T>::remove(const T& obj)noexcept
+template<class T> template <class Value>
+void QuadTree<T>::erase(const Value& obj)noexcept
 {
 	for (auto& node : m_Nodes)
 	{
@@ -239,8 +242,8 @@ void QuadTree<T>::remove(const T& obj)noexcept
 	}
 }
 
-template<class T>
-void QuadTree<T>::remove_first(const T& obj)noexcept
+template<class T> template <class Value>
+void QuadTree<T>::erase_first(const Value& obj)noexcept
 {
 	for (auto& node : m_Nodes)
 	{
