@@ -54,13 +54,13 @@ public:
 	void each_collision(Collider collider, OnCollisionFunc func)noexcept;
 
 	template<class Pred>
-	void remove_if(Pred pred)noexcept;
+	void erase_if(Pred pred)noexcept;
 
 	template<class Pred>
-	void remove_first_if(Pred pred)noexcept;
+	void erase_first_if(Pred pred)noexcept;
 
-	void remove(const T& v)noexcept;
-	void remove_first(const T& v)noexcept;
+	void erase(const T& v)noexcept;
+	void erase_first(const T& v)noexcept;
 
 	void reserve(size_t size)noexcept { m_Nodes.reserve(size); }
 	void clear()noexcept { m_Nodes.clear(); }
