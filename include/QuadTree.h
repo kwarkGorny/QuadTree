@@ -41,17 +41,28 @@ template<class T>
 class QuadTree
 {
 public:
-	void initialize(int maxLevel, size_t maxObjects, Rect bound)noexcept;
-	void insert(Rect bound, T&& obj)noexcept;
+	QuadTree(int maxLevel, size_t maxObjects, Rect bound) noexcept
+		: m_MaxLevel(maxLevel)
+		, m_MaxObjects(maxObjects)
+	{
+		m_Nodes.push_back(QuadNode<T>{ std::move(bound), -1, -1, {} });
+	}
+	QuadTree(QuadTree&&) = default;
+	QuadTree(const QuadTree&) = default;
+	QuadTree& operator=(const QuadTree&) = default;
+	QuadTree& operator=(QuadTree&&) = default;
 
-	template<class PairCollisionPred, class PairCollisionFunc>
-	void each_collision_if(PairCollisionPred isColliding, PairCollisionFunc onCollision)noexcept;
+
+	void insert(Rect bound, T&& obj)noexcept;
 
 	template<class PairCollisionFunc>
 	void each_collision(PairCollisionFunc onCollision)noexcept;
 
-	template<class Collider, class OnCollisionFunc>
-	void each_collision(Collider collider, OnCollisionFunc func)noexcept;
+	template<class PairCollisionPred, class PairCollisionFunc>
+	void each_collision(PairCollisionPred isColliding, PairCollisionFunc onCollision)noexcept;
+
+	template<class Collider, class PairCollisionPred, class PairCollisionFunc>
+	void each_collision(Collider collider, PairCollisionPred isColliding, PairCollisionFunc onCollision)noexcept;
 
 	template<class Pred>
 	void erase_if(Pred pred)noexcept;
@@ -66,8 +77,8 @@ public:
 	void erase_first(const Value& v)noexcept;
 
 	void reserve(size_t size)noexcept { m_Nodes.reserve(size); }
-	void clear()noexcept { m_Nodes.clear(); }
-	void shrinkToFit()noexcept;
+	void clear()noexcept;
+	void shrink_to_fit()noexcept;
 
 private:
 	void split(int index, QuadNode<T>& node)noexcept;
@@ -87,18 +98,9 @@ private:
 };
 
 template<class T>
-void QuadTree<T>::initialize(int maxLevel, size_t maxObjects, Rect bound)noexcept
-{
-	m_MaxLevel = maxLevel;
-	m_MaxObjects = maxObjects;
-	m_Nodes.push_back(QuadNode<T>{ std::move(bound), -1, -1, {} });
-}
-
-template<class T>
 void QuadTree<T>::insert(Rect bound, T&& obj)noexcept
 {
-	if (m_Nodes.size() == 0 ||
-		!m_Nodes[0].bound.intersects(bound))
+	if (!m_Nodes[0].bound.intersects(bound))
 	{
 		return;
 	}
@@ -131,7 +133,7 @@ void QuadTree<T>::insert(Rect bound, T&& obj)noexcept
 
 template<class T>
 template<class PairCollisionPred, class PairCollisionFunc>
-void QuadTree<T>::each_collision_if(PairCollisionPred isColliding, PairCollisionFunc onCollision)noexcept
+void QuadTree<T>::each_collision(PairCollisionPred isColliding, PairCollisionFunc onCollision)noexcept
 {
 	for (auto& node : m_Nodes)
 	{
@@ -170,15 +172,14 @@ template<class T>
 template<class PairCollisionFunc>
 void QuadTree<T>::each_collision(PairCollisionFunc onCollision)noexcept
 {
-	each_collision_if([](const Entry<T>& l, const Entry<T>& r) {return l.bound.intersects(r.bound); }, onCollision);
+	each_collision([](const Entry<T>& l, const Entry<T>& r) {return l.bound.intersects(r.bound); }, onCollision);
 }
 
 template<class T>
-template<class Collider, class OnCollisionFunc>
-void QuadTree<T>::each_collision(Collider collider, OnCollisionFunc func)noexcept
+template<class Collider, class PairCollisionPred, class OnCollisionFunc>
+void QuadTree<T>::each_collision(Collider collider, PairCollisionPred isColliding, OnCollisionFunc func)noexcept
 {
-	if (m_Nodes.size() == 0 ||
-		!collider.intersects(m_Nodes[0].bound))
+	if (!collider.intersects(m_Nodes[0].bound))
 	{
 		return;
 	}
@@ -191,7 +192,7 @@ void QuadTree<T>::each_collision(Collider collider, OnCollisionFunc func)noexcep
 		auto& node = m_Nodes[index];
 		for (auto& obj : node.objects)
 		{
-			if (collider.intersects(obj.bound))
+			if (isColliding(collider, obj.bound))
 			{
 				func(obj);
 			}
@@ -200,7 +201,7 @@ void QuadTree<T>::each_collision(Collider collider, OnCollisionFunc func)noexcep
 		{
 			for (int i = 0; i < QuadTree::COUNT; ++i)
 			{
-				if (collider.intersects(m_Nodes[node.children + i].bound))
+				if (isColliding(collider, m_Nodes[node.children + i].bound))
 				{
 					stack.emplace(node.children + i);
 				}
@@ -257,7 +258,17 @@ void QuadTree<T>::erase_first(const Value& obj)noexcept
 }
 
 template<class T>
-void QuadTree<T>::shrinkToFit()noexcept
+void QuadTree<T>::clear()noexcept 
+{
+	Rect bound = m_Nodes[0].bound;
+	m_Nodes.clear(); 
+	m_Nodes.push_back(QuadNode<T>{ std::move(bound), -1, -1, {} });
+
+}
+
+
+template<class T>
+void QuadTree<T>::shrink_to_fit()noexcept
 {
 	m_Nodes.shrink_to_fit();
 	for (auto& node : m_Nodes)
