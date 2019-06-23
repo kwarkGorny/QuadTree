@@ -1,15 +1,15 @@
 # QuadTree
-Implementation of non-recursive quadtree
-#Constructing a quadtree
+One header only implementation of non-recursive quadtree
+# Constructing a quadtree
 ```cpp
 QuadTree<YourType> quadtree;
 tree.initialize(maxLevels, maxObjectsPerNode, { x, y, width, height});
 ```
-#Inserting objects
+# Inserting objects
 ```cpp
 quadtree.insert({ x, y, width, height}, data);
 ```
-#Removing objects
+# Removing objects
 ```cpp
 //Removing all objects with predicate
 quadTree.erase_if([](Entry<YourType>& entry) { ... });
@@ -24,5 +24,5 @@ quadTree.erase(value);
 quadTree.erase_first(value);
 ```
 
-#Collision checking
+# Collision checking
 quadtree.each_collision([](Entry<YourType>& entryL, Entry<YourType>& entryR) {})
